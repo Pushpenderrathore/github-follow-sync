@@ -1,0 +1,49 @@
+name: Manual Follow Manager
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "dry-run or execute"
+        required: true
+        default: "dry-run"
+        type: choice
+        options:
+          - dry-run
+          - execute
+
+      max_follows:
+        description: "Maximum follows per run"
+        required: false
+        default: "5"
+
+      max_unfollows:
+        description: "Maximum unfollows per run"
+        required: false
+        default: "5"
+
+jobs:
+  follow-manager:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+
+      - name: Run follow manager
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          python scripts/follow_manager.py \
+            --mode "${{ inputs.mode }}" \
+            --max-follows "${{ inputs.max_follows }}" \
+            --max-unfollows "${{ inputs.max_unfollows }}"
