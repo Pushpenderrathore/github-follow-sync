@@ -1,26 +1,10 @@
-name: Manual Follow Manager
+name: Auto Follow Manager
 
 on:
-  workflow_dispatch:
-    inputs:
-      mode:
-        description: "dry-run or execute"
-        required: true
-        default: "dry-run"
-        type: choice
-        options:
-          - dry-run
-          - execute
+  workflow_dispatch:   # still allows manual run
 
-      max_follows:
-        description: "Maximum follows per run"
-        required: false
-        default: "5"
-
-      max_unfollows:
-        description: "Maximum unfollows per run"
-        required: false
-        default: "5"
+  schedule:
+    - cron: "0 6 * * *"   # Runs daily at 6:00 UTC
 
 jobs:
   follow-manager:
@@ -44,6 +28,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           python scripts/follow_manager.py \
-            --mode "${{ inputs.mode }}" \
-            --max-follows "${{ inputs.max_follows }}" \
-            --max-unfollows "${{ inputs.max_unfollows }}"
+            --mode "execute" \
+            --max-follows "3" \
+            --max-unfollows "3"
