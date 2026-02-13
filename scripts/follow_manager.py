@@ -7,6 +7,11 @@ from typing import List, Set
 
 GITHUB_API = "https://api.github.com"
 
+def load_whitelist():  
+        if not os.path.exists("whitelist.txt"):  
+            return set()  
+        with open("whitelist.txt", "r") as f:  
+            return {line.strip() for line in f if line.strip()}
 
 class GitHubFollowManager:
     def __init__(self, token: str):
@@ -20,8 +25,9 @@ class GitHubFollowManager:
     def check_rate_limit(self):
         r = self.session.get(f"{GITHUB_API}/rate_limit")
         data = r.json()
-        remaining = data["rate"]["remaining"]
-        reset = data["rate"]["reset"]
+        remaining = data.get("rate", {}).get("remaining", 0)
+        reset = data.get("rate", {}).get("reset", int(time.time()))
+
 
         print(f"[INFO] API remaining: {remaining}")
 
@@ -65,8 +71,7 @@ class GitHubFollowManager:
 
     def unfollow_user(self, username: str):
         r = self.session.delete(f"{GITHUB_API}/user/following/{username}")
-        return r.status_code == 204
-
+        return r.status_code == 204  
 
 def main():
     parser = argparse.ArgumentParser(description="Safe GitHub Follow Sync")
@@ -89,7 +94,11 @@ def main():
     following = manager.get_following()
 
     to_follow = list(followers - following)[:args.max_follows]
-    to_unfollow = list(following - followers)[:args.max_unfollows]
+    whitelist = load_whitelist()
+    candidates = following - followers
+    filtered = [user for user in candidates if user not in whitelist]
+    to_unfollow = filtered[:args.max_unfollows]
+
 
     print(f"[INFO] Users to follow: {len(to_follow)}")
     print(f"[INFO] Users to unfollow: {len(to_unfollow)}")
