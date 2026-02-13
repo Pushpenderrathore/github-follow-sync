@@ -29,5 +29,5 @@ jobs:
         run: |
           python scripts/follow_manager.py \
             --mode "execute" \
-            --max-follows "2" \
-            --max-unfollows "2"
+            --max-follows "0" \
+            --max-unfollows "3"
